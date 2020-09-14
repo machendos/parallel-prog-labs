@@ -10,6 +10,7 @@ class CPUQueue extends EventEmitter {
   }
 
   add(processName) {
+    console.log(`add ${processName} to queue`);
     this.length++;
     this.process.push(processName);
     this.emit('new');
@@ -37,9 +38,6 @@ class CPUProcess extends EventEmitter {
       this.generateIntervalBottom;
     setTimeout(() => {
       this.emit('generate');
-      console.log('=');
-      console.log(this.generated);
-      console.log(this.count);
       return ++this.generated === this.count ? this.emit('fin') : this.start();
     }, timeout);
   }
@@ -63,7 +61,9 @@ class CPU {
         (this.processingIntervalTop - this.processingIntervalBotton) +
       this.processingIntervalBotton;
     this.currProcess = processName;
+    console.log(`start process ${this.currProcess}`);
     setTimeout(() => {
+      console.log(`end process ${this.currProcess}`);
       this.currProcess = undefined;
       if (this.queue.length > 0) this.process(this.queue.get());
     }, timeout);
