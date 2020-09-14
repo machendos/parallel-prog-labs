@@ -10,7 +10,7 @@ class CPUQueue extends EventEmitter {
   }
 
   add(processName) {
-    console.log(`add ${processName} to queue`);
+    console.log(`add ${processName} to queue. Queue length: ${this.length}`);
     this.length++;
     this.process.push(processName);
     this.emit('new');
@@ -18,6 +18,9 @@ class CPUQueue extends EventEmitter {
 
   get() {
     this.length--;
+    console.log(
+      `get ${this.process[0]} from queue. Queue length: ${this.length}`
+    );
     return this.process.shift();
   }
 }
@@ -43,8 +46,9 @@ class CPUProcess extends EventEmitter {
   }
 }
 
-class CPU {
+class CPU extends EventEmitter {
   constructor(processingIntervalBotton, processingIntervalTop, queue) {
+    super();
     this.currProcess = undefined;
     this.processingIntervalBotton = processingIntervalBotton;
     this.processingIntervalTop = processingIntervalTop;
@@ -62,10 +66,11 @@ class CPU {
       this.processingIntervalBotton;
     this.currProcess = processName;
     console.log(`start process ${this.currProcess}`);
-    setTimeout(() => {
+    this.timeout = setTimeout(() => {
       console.log(`end process ${this.currProcess}`);
       this.currProcess = undefined;
       if (this.queue.length > 0) this.process(this.queue.get());
+      else this.emit('empty');
     }, timeout);
   }
 }
