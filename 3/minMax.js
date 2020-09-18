@@ -4,9 +4,9 @@ const worker = require('worker_threads');
 const { Worker } = worker;
 
 const WORKER_THREADS_COUNT = 4;
-const ARRAY_LENGTH = 100;
+const ARRAY_LENGTH = 1000000;
 const ELEMENT_MIN = 1;
-const ELEMENT_MAX = 1000120;
+const ELEMENT_MAX = 1000;
 
 if (worker.isMainThread) {
   const array = new Array(ARRAY_LENGTH)
@@ -16,8 +16,8 @@ if (worker.isMainThread) {
         Math.floor(Math.random() * (ELEMENT_MAX - ELEMENT_MIN)) + ELEMENT_MIN
     );
 
-  console.log(Math.max(...array));
-  console.log(Math.min(...array));
+  // console.log(Math.max(...array));
+  // console.log(Math.min(...array));
 
   const oneThreadPart = Math.ceil(ARRAY_LENGTH / WORKER_THREADS_COUNT);
   const safeMaxBuffer = new SharedArrayBuffer(4);
@@ -67,18 +67,26 @@ if (worker.isMainThread) {
   const unsafeMax = new Int32Array(unsafeMaxBuffer);
   const safeMin = new Int32Array(safeMinBuffer);
   const unsafeMin = new Int32Array(unsafeMinBuffer);
-  array.forEach(element => {
-    const currMax = Atomics.load(safeMax, 0);
-    if (currMax < element)
-      Atomics.compareExchange(safeMax, 0, currMax, element);
 
-    const currMin = Atomics.load(safeMin, 0);
-    if (currMin > element)
-      Atomics.compareExchange(safeMin, 0, currMin, element);
+  array.forEach(element => {
+    while (true) {
+      const currMax = Atomics.load(safeMax, 0);
+      if (currMax < element) {
+        const updated = Atomics.compareExchange(safeMax, 0, currMax, element);
+        if (updated === currMax) break;
+      } else break;
+    }
+
+    while (true) {
+      const currMin = Atomics.load(safeMin, 0);
+      if (currMin > element) {
+        const updated = Atomics.compareExchange(safeMin, 0, currMin, element);
+        if (updated === currMin) break;
+      } else break;
+    }
 
     const oldMax = unsafeMax[0];
     unsafeMax[0] = Math.max(oldMax, element);
-    // console.log(Math.max(unsafeMax[0]));
     const oldMin = unsafeMin[0];
     unsafeMin[0] = Math.min(oldMin, element);
   });
