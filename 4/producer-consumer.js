@@ -14,28 +14,26 @@ const Mutex = require(__dirname + '/mutex');
 const thread = require('worker_threads');
 const fs = require('fs');
 
-const TOTAL_PRODUCTS_COUNT = 100;
+const TOTAL_PRODUCTS_COUNT = 10;
 const SHOP_CAPACITY = 3;
-const PRODUCERS_COUNT = 4;
-const CONSUMERS_COUNT = 4;
+const PRODUCERS_COUNT = 2;
+const CONSUMERS_COUNT = 2;
 
 const { Worker } = thread;
 
 if (thread.isMainThread) {
+  fs.writeFileSync(__dirname + '/results.txt', '');
   const mutexBuffer = new SharedArrayBuffer(4);
   new Mutex(mutexBuffer, 0, true);
 
-  const shopBuffer = new SharedArrayBuffer(16);
-  const shop = new Int32Array(shopBuffer);
-  setTimeout(() => console.log(shop), 1000);
-  // сколько занято, сколько изготовлено, сколько употреблено
+  const shopBuffer = new SharedArrayBuffer(16); // busy, produced, consumed, ind
   for (let producerNumb = 0; producerNumb < PRODUCERS_COUNT; producerNumb++) {
     new Worker(__filename, {
       workerData: {
         mutexBuffer,
         shopBuffer,
         producer: true,
-        name: `producer ${producerNumb}`,
+        name: `producer${producerNumb}`,
       },
     });
   }
@@ -45,7 +43,7 @@ if (thread.isMainThread) {
         mutexBuffer,
         shopBuffer,
         producer: false,
-        name: `consumer ${consumerNumb}`,
+        name: `consumer${consumerNumb}`,
       },
     });
   }
@@ -56,38 +54,29 @@ if (thread.isMainThread) {
   if (producer) {
     while (shop[1] < TOTAL_PRODUCTS_COUNT) {
       mutex.enter();
-      const currCount = shop[0];
-      const produced = shop[1];
-      if (currCount < SHOP_CAPACITY && produced < TOTAL_PRODUCTS_COUNT) {
-        const old = Atomics.add(shop, 3, 1);
+      if (shop[0] < SHOP_CAPACITY && shop[1] < TOTAL_PRODUCTS_COUNT) {
         fs.writeFileSync(
           __dirname + '/results.txt',
-          `${name} produced product. Before: ${shop[0]}. After: ${
-            shop[0] + 1
-          } Индекс: ${old + 1}\n`,
+          `${name} produced product. Before: ${
+            shop[0]
+          }. After: ${++shop[0]} Индекс: ${Atomics.add(shop, 3, 1) + 1}\n`,
           { flag: 'a' }
         );
-        shop[0]++;
         shop[1]++;
-      } else setTimeout(() => {}, 1000);
+      }
       mutex.leave();
     }
   } else {
     while (shop[2] < TOTAL_PRODUCTS_COUNT) {
       mutex.enter();
-      const currCount = shop[0];
-      const consumed = shop[2];
-
-      if (currCount > 0 && consumed < TOTAL_PRODUCTS_COUNT) {
-        const old = Atomics.add(shop, 3, 1);
+      if (shop[0] > 0 && shop[2] < TOTAL_PRODUCTS_COUNT) {
         fs.writeFileSync(
           __dirname + '/results.txt',
-          `${name} consumed product. Before: ${shop[0]}. After: ${
-            shop[0] - 1
-          } Индекс: ${old + 1}\n`,
+          `${name} consumed product. Before: ${
+            shop[0]
+          }. After: ${--shop[0]} Индекс: ${Atomics.add(shop, 3, 1) + 1}\n`,
           { flag: 'a' }
         );
-        shop[0]--;
         shop[2]++;
       }
       mutex.leave();
