@@ -56,9 +56,10 @@ if (threads.isMainThread) {
     writersCounterBuffer,
   } = threads.workerData;
 
-  const WBRMutex = new Semaphore(WBRSemaphoreBuffer);
-  const freeMutex = new Semaphore(freeSemaphoreBuffer);
-  const changeReaders = new Semaphore(changeReadersBuffer);
+  const WBRSemaphore = new Semaphore(WBRSemaphoreBuffer);
+  const freeSemaphore = new Semaphore(freeSemaphoreBuffer);
+  const changeReadersSemaphore = new Semaphore(changeReadersBuffer);
+
   const operationCounter = new Int32Array(operationCounterBuffer);
   const readersCounter = new Int32Array(readersCounterBuffer);
   const writersCounter = new Int32Array(writersCounterBuffer);
@@ -67,37 +68,37 @@ if (threads.isMainThread) {
     const read = Math.random() > AVERAGE_PERCENTAGE_OF_READERS;
     if (read) {
       while (true) {
-        WBRMutex.enter();
+        WBRSemaphore.enter();
         if (Atomics.load(writersCounter, 0) > 0) {
-          WBRMutex.leave();
+          WBRSemaphore.leave();
         } else {
-          changeReaders.enter();
+          changeReadersSemaphore.enter();
           Atomics.add(readersCounter, 0, 1);
-          if (!freeMutex.isLocked()) {
-            freeMutex.enter();
+          if (!freeSemaphore.isLocked()) {
+            freeSemaphore.enter();
           }
-          changeReaders.leave();
-          WBRMutex.leave();
+          changeReadersSemaphore.leave();
+          WBRSemaphore.leave();
           readCallback(threads.threadId);
           Atomics.add(operationCounter, 0, 1);
-          changeReaders.enter();
+          changeReadersSemaphore.enter();
           Atomics.sub(readersCounter, 0, 1);
           if (Atomics.load(readersCounter, 0) === 0) {
-            freeMutex.leave();
+            freeSemaphore.leave();
           }
-          changeReaders.leave();
+          changeReadersSemaphore.leave();
           break;
         }
       }
     } else {
       Atomics.add(writersCounter, 0, 1);
-      WBRMutex.enter();
-      freeMutex.enter();
+      WBRSemaphore.enter();
+      freeSemaphore.enter();
       writerCallback(threads.threadId);
       Atomics.add(operationCounter, 0, 1);
       Atomics.sub(writersCounter, 0, 1);
-      freeMutex.leave();
-      WBRMutex.leave();
+      freeSemaphore.leave();
+      WBRSemaphore.leave();
     }
   }
 }
