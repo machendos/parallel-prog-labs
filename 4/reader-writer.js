@@ -10,7 +10,7 @@ const AVERAGE_PERCENTAGE_OF_READERS = 0.3;
 const THREADS_COUNT = 10;
 const TOTAL_OPERATION_COUNT = 10000;
 
-const log = (data1, data2) =>
+const log = (data1 = '', data2 = '') =>
   writeFileSync(__dirname + '/results-2.txt', data1 + data2, { flag: 'a' });
 
 const writerCallback = threadName =>
@@ -20,7 +20,7 @@ const readCallback = threadName =>
   log(`${threadName} --> READ START\n`, `${threadName} --> READ FINISH\n`);
 
 if (threads.isMainThread) {
-  writeFileSync(__dirname + '/results-2.txt', '');
+  log();
   const WBRSemaphoreBuffer = new SharedArrayBuffer(4);
   new Semaphore(WBRSemaphoreBuffer, 0, true);
 
@@ -94,9 +94,9 @@ if (threads.isMainThread) {
       Atomics.add(writersCounter, 0, 1);
       WBRSemaphore.enter();
       freeSemaphore.enter();
-      writerCallback(threads.threadId);
       Atomics.add(operationCounter, 0, 1);
       Atomics.sub(writersCounter, 0, 1);
+      writerCallback();
       freeSemaphore.leave();
       WBRSemaphore.leave();
     }

@@ -4,9 +4,9 @@ const worker = require('worker_threads');
 const { Worker } = worker;
 
 const WORKER_THREADS_COUNT = 4;
-const ARRAY_LENGTH = 1000000;
+const ARRAY_LENGTH = 100000;
 const ELEMENT_MIN = 1;
-const ELEMENT_MAX = 1000;
+const ELEMENT_MAX = 100000;
 
 if (worker.isMainThread) {
   const array = new Array(ARRAY_LENGTH)
@@ -15,9 +15,6 @@ if (worker.isMainThread) {
       () =>
         Math.floor(Math.random() * (ELEMENT_MAX - ELEMENT_MIN)) + ELEMENT_MIN
     );
-
-  // console.log(Math.max(...array));
-  // console.log(Math.min(...array));
 
   const oneThreadPart = Math.ceil(ARRAY_LENGTH / WORKER_THREADS_COUNT);
   const safeMaxBuffer = new SharedArrayBuffer(4);

@@ -15,10 +15,10 @@ const fs = require('fs');
 
 const { Worker } = thread;
 
-const TOTAL_PRODUCTS_COUNT = 10;
+const TOTAL_PRODUCTS_COUNT = 1000;
 const SHOP_CAPACITY = 3;
-const PRODUCERS_COUNT = 2;
-const CONSUMERS_COUNT = 2;
+const PRODUCERS_COUNT = 10;
+const CONSUMERS_COUNT = 10;
 
 const log = (n, before, after, ind, act) => {
   fs.writeFileSync(

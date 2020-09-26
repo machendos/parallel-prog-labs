@@ -47,7 +47,9 @@ if (worker.isMainThread) {
 
   const safeXOR = new Int32Array(safeXORBuffer);
   const unsafeXOR = new Int32Array(unsafeXORBuffer);
-  array.forEach(element => {
+  safeXOR[0] = array[0];
+  unsafeXOR[0] = array[0];
+  array.slice(1).forEach(element => {
     Atomics.xor(safeXOR, 0, element);
     const oldXOR = unsafeXOR[0];
     unsafeXOR[0] = oldXOR ^ element;
