@@ -14,8 +14,8 @@ class CPUProcess {
 
   start() {
     const timeout =
-      Math.random() * (this.generateIntervalTop - this.generateIntervalBottom) +
-      this.generateIntervalBottom;
+      Math.random() * (this.genIntervalTop - this.genIntervalBottom) +
+      this.genIntervalBottom;
     setTimeout(() => {
       this.parentPort.postMessage({ generated: this.name });
       parentPort.emit();

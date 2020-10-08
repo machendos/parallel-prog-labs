@@ -28,7 +28,7 @@ class Model {
       workerData: {
         name: FIRST_PROCESS_NAME,
         genIntervalBottom: FIRST_PROCESS_INTERVAL_BOTTON,
-        genIntervalTOP: FIRST_PROCESS_INTERVAL_TOP,
+        genIntervalTop: FIRST_PROCESS_INTERVAL_TOP,
         count: FIRST_PROCESS_COUNT,
       },
     });
@@ -37,7 +37,7 @@ class Model {
       workerData: {
         name: SECOND_PROCESS_NAME,
         genIntervalBottom: SECOND_PROCESS_INTERVAL_BOTTON,
-        genIntervalTOP: SECOND_PROCESS_INTERVAL_TOP,
+        genIntervalTop: SECOND_PROCESS_INTERVAL_TOP,
         count: SECOND_PROCESS_COUNT,
       },
     });
@@ -62,7 +62,7 @@ class Model {
     });
 
     this.secondProcess.on('message', () => {
-      console.log(`generated ${SECOND_PROCESS_NAME}`);
+      console.log(`gener3000ated ${SECOND_PROCESS_NAME}`);
       this.queue.add(SECOND_PROCESS_NAME);
       if (this.maxQueueLength < this.queue.length)
         this.maxQueueLength = this.queue.length;
@@ -78,8 +78,7 @@ class Model {
       .then(() => new Promise(res => this.cpu.on('empty', res)))
       .then(() => {
         console.log(
-          `Destroyed first process: ${this.firstProcessDestroyed
-          }/${FIRST_PROCESS_COUNT}`
+          `Destroyed first process: ${this.firstProcessDestroyed}/${FIRST_PROCESS_COUNT}`
         );
         console.log(
           `Interrupted second process: ${this.secondProcessInterrupted}`
